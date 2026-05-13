@@ -1,0 +1,57 @@
+{
+  "_format": "hh3-sol-build-info-1",
+  "id": "solc-0_8_20-f2e678f521f466f0a5a89720462303d0291003e5",
+  "solcVersion": "0.8.20",
+  "solcLongVersion": "0.8.20+commit.a1b79de6",
+  "compilerType": "solc",
+  "toolVersions": {
+    "hardhat": "3.4.4"
+  },
+  "userSourceNameMap": {
+    "contracts/FoodTrace.sol": "project/contracts/FoodTrace.sol"
+  },
+  "input": {
+    "language": "Solidity",
+    "settings": {
+      "evmVersion": "shanghai",
+      "optimizer": {
+        "enabled": true,
+        "runs": 200
+      },
+      "outputSelection": {
+        "*": {
+          "": [
+            "ast"
+          ],
+          "*": [
+            "abi",
+            "evm.bytecode.linkReferences",
+            "evm.bytecode.object",
+            "evm.bytecode.opcodes",
+            "evm.bytecode.sourceMap",
+            "evm.deployedBytecode.immutableReferences",
+            "evm.deployedBytecode.linkReferences",
+            "evm.deployedBytecode.object",
+            "evm.deployedBytecode.opcodes",
+            "evm.deployedBytecode.sourceMap",
+            "evm.methodIdentifiers"
+          ]
+        }
+      },
+      "remappings": [
+        "project/:@openzeppelin/contracts/=npm/@openzeppelin/contracts@5.6.1/"
+      ]
+    },
+    "sources": {
+      "npm/@openzeppelin/contracts@5.6.1/access/Ownable.sol": {
+        "content": "// SPDX-License-Identifier: MIT\n// OpenZeppelin Contracts (last updated v5.0.0) (access/Ownable.sol)\n\npragma solidity ^0.8.20;\n\nimport {Context} from \"../utils/Context.sol\";\n\n/**\n * @dev Contract module which provides a basic access control mechanism, where\n * there is an account (an owner) that can be granted exclusive access to\n * specific functions.\n *\n * The initial owner is set to the address provided by the deployer. This can\n * later be changed with {transferOwnership}.\n *\n * This module is used through inheritance. It will make available the modifier\n * `onlyOwner`, which can be applied to your functions to restrict their use to\n * the owner.\n */\nabstract contract Ownable is Context {\n    address private _owner;\n\n    /**\n     * @dev The caller account is not authorized to perform an operation.\n     */\n    error OwnableUnauthorizedAccount(address account);\n\n    /**\n     * @dev The owner is not a valid owner account. (eg. `address(0)`)\n     */\n    error OwnableInvalidOwner(address owner);\n\n    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);\n\n    /**\n     * @dev Initializes the contract setting the address provided by the deployer as the initial owner.\n     */\n    constructor(address initialOwner) {\n        if (initialOwner == address(0)) {\n            revert OwnableInvalidOwner(address(0));\n        }\n        _transferOwnership(initialOwner);\n    }\n\n    /**\n     * @dev Throws if called by any account other than the owner.\n     */\n    modifier onlyOwner() {\n        _checkOwner();\n        _;\n    }\n\n    /**\n     * @dev Returns the address of the current owner.\n     */\n    function owner() public view virtual returns (address) {\n        return _owner;\n    }\n\n    /**\n     * @dev Throws if the sender is not the owner.\n     */\n    function _checkOwner() internal view virtual {\n        if (owner() != _msgSender()) {\n            revert OwnableUnauthorizedAccount(_msgSender());\n        }\n    }\n\n    /**\n     * @dev Leaves the contract without owner. It will not be possible to call\n     * `onlyOwner` functions. Can only be called by the current owner.\n     *\n     * NOTE: Renouncing ownership will leave the contract without an owner,\n     * thereby disabling any functionality that is only available to the owner.\n     */\n    function renounceOwnership() public virtual onlyOwner {\n        _transferOwnership(address(0));\n    }\n\n    /**\n     * @dev Transfers ownership of the contract to a new account (`newOwner`).\n     * Can only be called by the current owner.\n     */\n    function transferOwnership(address newOwner) public virtual onlyOwner {\n        if (newOwner == address(0)) {\n            revert OwnableInvalidOwner(address(0));\n        }\n        _transferOwnership(newOwner);\n    }\n\n    /**\n     * @dev Transfers ownership of the contract to a new account (`newOwner`).\n     * Internal function without access restriction.\n     */\n    function _transferOwnership(address newOwner) internal virtual {\n        address oldOwner = _owner;\n        _owner = newOwner;\n        emit OwnershipTransferred(oldOwner, newOwner);\n    }\n}\n"
+      },
+      "npm/@openzeppelin/contracts@5.6.1/utils/Context.sol": {
+        "content": "// SPDX-License-Identifier: MIT\n// OpenZeppelin Contracts (last updated v5.0.1) (utils/Context.sol)\n\npragma solidity ^0.8.20;\n\n/**\n * @dev Provides information about the current execution context, including the\n * sender of the transaction and its data. While these are generally available\n * via msg.sender and msg.data, they should not be accessed in such a direct\n * manner, since when dealing with meta-transactions the account sending and\n * paying for execution may not be the actual sender (as far as an application\n * is concerned).\n *\n * This contract is only required for intermediate, library-like contracts.\n */\nabstract contract Context {\n    function _msgSender() internal view virtual returns (address) {\n        return msg.sender;\n    }\n\n    function _msgData() internal view virtual returns (bytes calldata) {\n        return msg.data;\n    }\n\n    function _contextSuffixLength() internal view virtual returns (uint256) {\n        return 0;\n    }\n}\n"
+      },
+      "project/contracts/FoodTrace.sol": {
+        "content": "// SPDX-License-Identifier: MIT\r\npragma solidity ^0.8.2;\r\n\r\nimport \"@openzeppelin/contracts/access/Ownable.sol\";\r\n\r\ncontract FoodTrace is Ownable {\r\n    // 生产商地址映射（管理员可管理）\r\n    mapping(address => bool) public producers;\r\n\r\n    // 溯源记录结构体\r\n    struct TraceRecord {\r\n        string data_hash;      // 链下数据哈希\r\n        string description;    // 环节描述\r\n        address operator;      // 操作者地址\r\n        uint256 timestamp;     // 上链时间戳\r\n    }\r\n\r\n    // 产品结构体\r\n    struct Product {\r\n        uint256 id;                   // 唯一产品ID\r\n        string name;                  // 产品名称\r\n        address producer;             // 生产商地址\r\n        bool exists;                  // 是否已注册\r\n        TraceRecord[] records;        // 溯源记录数组\r\n    }\r\n\r\n    // 产品ID自增\r\n    uint256 public next_product_id = 1;\r\n\r\n    // 产品ID到产品的映射\r\n    mapping(uint256 => Product) public products;\r\n\r\n    // 事件\r\n    event ProductRegistered(uint256 indexed product_id, string name, address indexed producer);\r\n    event RecordAdded(uint256 indexed product_id, string data_hash, string description, uint256 timestamp, address indexed operator);\r\n    event ProducerAdded(address indexed producer);\r\n    event ProducerRemoved(address indexed producer);\r\n\r\n    // 构造函数，设置管理员（部署者即owner）\r\n    constructor() Ownable(msg.sender) {}\r\n\r\n    // 修饰符：仅生产商\r\n    modifier onlyProducer() {\r\n        require(producers[msg.sender], \"Caller is not a producer\");\r\n        _;\r\n    }\r\n\r\n    // 管理员添加生产商\r\n    function add_producer(address _producer) external onlyOwner {\r\n        require(_producer != address(0), \"Invalid address\");\r\n        require(!producers[_producer], \"Already a producer\");\r\n        producers[_producer] = true;\r\n        emit ProducerAdded(_producer);\r\n    }\r\n\r\n    // 管理员移除生产商\r\n    function remove_producer(address _producer) external onlyOwner {\r\n        require(producers[_producer], \"Not a producer\");\r\n        producers[_producer] = false;\r\n        emit ProducerRemoved(_producer);\r\n    }\r\n\r\n    // 生产商注册新产品，返回产品ID\r\n    function register_product(string calldata _name) external onlyProducer returns (uint256) {\r\n        require(bytes(_name).length > 0, \"Product name cannot be empty\");\r\n\r\n        uint256 product_id = next_product_id;\r\n        next_product_id++;\r\n\r\n        Product storage p = products[product_id];\r\n        p.id = product_id;\r\n        p.name = _name;\r\n        p.producer = msg.sender;\r\n        p.exists = true;\r\n\r\n        emit ProductRegistered(product_id, _name, msg.sender);\r\n        return product_id;\r\n    }\r\n\r\n    // 生产商为指定产品添加溯源记录\r\n    function add_record(\r\n        uint256 _product_id,\r\n        string calldata _data_hash,\r\n        string calldata _description\r\n    ) external onlyProducer {\r\n        Product storage p = products[_product_id];\r\n        require(p.exists, \"Product does not exist\");\r\n        require(p.producer == msg.sender, \"You are not the producer of this product\");\r\n        require(bytes(_data_hash).length > 0 || bytes(_description).length > 0, \"Record must have at least hash or description\");\r\n\r\n        p.records.push(TraceRecord({\r\n            data_hash: _data_hash,\r\n            description: _description,\r\n            operator: msg.sender,\r\n            timestamp: block.timestamp\r\n        }));\r\n\r\n        emit RecordAdded(_product_id, _data_hash, _description, block.timestamp, msg.sender);\r\n    }\r\n\r\n    // 查询产品信息（包括所有溯源记录）\r\n    function get_product(uint256 _product_id) external view returns (\r\n        uint256 id,\r\n        string memory name,\r\n        address producer,\r\n        bool exists,\r\n        TraceRecord[] memory records\r\n    ) {\r\n        Product storage p = products[_product_id];\r\n        require(p.exists, \"Product does not exist\");\r\n        return (p.id, p.name, p.producer, p.exists, p.records);\r\n    }\r\n}"
+      }
+    }
+  }
+}

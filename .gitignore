@@ -1,23 +1,100 @@
-# 依赖目录
-node_modules/
-
-# Hardhat 编译输出
-artifacts/
-cache/
-
-# 编辑器配置
-.vscode/
-
-# 环境变量
-.env
-
-# 构建输出
-dist/
-build/
-
-# 覆盖率报告
-coverage/
-
-# 操作系统杂项
+# =======================================
+# 操作系统与编辑器生成的垃圾文件
+# =======================================
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# JetBrains IDEs (GoLand, WebStorm, IntelliJ等)
+.idea/
+*.iml
+
+# VS Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+
+# Vim
+*.swp
+*.swo
+*~
+
+# =======================================
+# Go 语言后端专属
+# =======================================
+# 编译生成的二进制可执行文件（根据你的项目名修改，比如你的main.go编译后叫main）
+main
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Go 测试产生的覆盖率文件
+*.test
+*.out
+
+# Go 工作区文件（如果你用了 go workspace）
+go.work
+go.work.sum
+
+# =======================================
+# Vue 前端专属
+# =======================================
+# 依赖包目录（体积巨大，绝对不能传）
+node_modules/
+# 打包编译后的输出目录
+dist/
+# 开发环境下的本地环境变量（包含密钥等敏感信息，绝对不要传！）
+.env.local
+.env.*.local
+# ESLint 缓存
+.eslintcache
+# 如果是 Vue CLI 项目可能产生的缓存
+.cache/
+
+# =======================================
+# Hardhat 智能合约专属
+# =======================================
+# 依赖包
+node_modules/
+# 编译产物（artifacts 和 cache 文件夹）
+cache/
+artifacts/
+# 合约类型生成文件（如果你用了 typechain）
+typechain/
+typechain-types/
+# 测试覆盖率报告
+coverage/
+coverage.json
+# 本地网络配置文件
+hardhat.config.ts
+hardhat.config.js
+# 部署脚本产生的临时文件
+.deployments/
+
+# =======================================
+# 通用敏感信息与大数据文件
+# =======================================
+# 数据库文件
+*.db
+*.sqlite
+*.sqlite3
+# 各种压缩包和二进制大文件（根据你的实际情况保留或删减）
+*.zip
+*.tar.gz
+*.rar
+# 私有密钥文件
+*.key
+*.pem

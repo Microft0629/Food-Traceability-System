@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.2;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 
@@ -39,6 +39,11 @@ contract FoodTrace is Ownable {
     // 构造函数，设置管理员（部署者即owner）
     constructor() Ownable(msg.sender) {}
 
+
+    function owner() public view override returns (address) {
+        return super.owner();
+    }
+    
     // 修饰符：仅生产商
     modifier onlyProducer() {
         require(producers[msg.sender], "Caller is not a producer");
@@ -60,8 +65,10 @@ contract FoodTrace is Ownable {
         emit ProducerRemoved(_producer);
     }
 
-    // 生产商注册新产品，返回产品ID
-    function register_product(string calldata _name) external onlyProducer returns (uint256) {
+    // 生产商注册新产品，返回产品ID（注册产品时直接传入哈希和描述）
+    function register_product(string calldata _name, 
+                              string calldata _data_hash, 
+                              string calldata _description) external onlyProducer returns (uint256) {
         require(bytes(_name).length > 0, "Product name cannot be empty");
 
         uint256 product_id = next_product_id;
@@ -73,7 +80,16 @@ contract FoodTrace is Ownable {
         p.producer = msg.sender;
         p.exists = true;
 
+        // 自动添加第一条溯源记录（初始哈希）
+        p.records.push(TraceRecord({
+            data_hash: _data_hash,
+            description: _description,
+            operator: msg.sender,
+            timestamp: block.timestamp
+        }));
+
         emit ProductRegistered(product_id, _name, msg.sender);
+        emit RecordAdded(product_id, _data_hash, _description, block.timestamp, msg.sender);
         return product_id;
     }
 
