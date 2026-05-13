@@ -1,6 +1,0 @@
-{
-  "go.useLanguageServer": true,
-  "go.goplsPath": "C:\\Users\\24390\\go\\bin\\gopls.exe",
-  "go.toolsGopath": "C:\\Users\\24390\\go",
-  "go.lintTool": "golangci-lint"
-}
