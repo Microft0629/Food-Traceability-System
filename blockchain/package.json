@@ -6,23 +6,25 @@
   "scripts": {
     "compile": "hardhat compile",
     "test": "hardhat test",
-    "deploy": "hardhat ignition deploy ignition/modules/deploy.js --network",
-    "deploy:ganache": "hardhat ignition deploy ignition/modules/deploy.js --network ganache",
-    "ganache": "ganache --port 7545 --wallet.seed myCustomSeed",
+    "deploy": "node scripts/deploy.js",
+    "sync-abi": "node scripts/sync-abi.js",
+    "ganache": "ganache --port 8545 --host 127.0.0.1 --chain.chainId 31337 --wallet.mnemonic \"test test test test test test test test test test test junk\" --database.dbPath ./ganache-data",
     "node": "hardhat node"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@nomicfoundation/hardhat-toolbox-viem": "^5.0.4",
-    "@nomicfoundation/hardhat-viem": "^3.0.6",
+    "@nomicfoundation/hardhat-chai-matchers": "^3.0.0",
+    "@nomicfoundation/hardhat-ethers": "^4.0.0",
+    "@nomicfoundation/hardhat-network-helpers": "^3.0.0",
+    "@nomicfoundation/hardhat-node-test-runner": "^3.0.15",
     "@openzeppelin/contracts": "^5.6.1",
     "chai": "^6.2.2",
     "dotenv": "^16.4.5",
+    "ethers": "^6.13.0",
     "ganache": "^7.9.2",
-    "hardhat": "^3.4.4",
-    "viem": "^2.48.8"
+    "hardhat": "^3.4.4"
   },
   "type": "module"
 }

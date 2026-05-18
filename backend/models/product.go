@@ -1,15 +1,16 @@
-// 数据模型
 package models
 
-import "gorm.io/gorm"
+import "time"
 
+// Product 产品数据模型（MySQL 存储链下完整元数据）
 type Product struct {
-    gorm.Model
-    BusinessNo       string `gorm:"unique;not null" json:"business_no"`
-    Name             string `gorm:"not null" json:"name"`
-    Detail           string `gorm:"type:text" json:"detail"`
-    DataHash         string `gorm:"not null" json:"data_hash"`
-    ProductIdOnChain uint   `gorm:"not null" json:"product_id_on_chain"` // 链上产品ID
-    TxHash           string `json:"tx_hash"`                             // 上链交易哈希
-    ProducerWallet   string `json:"producer_wallet"`
+	ID               uint      `gorm:"primaryKey" json:"id"`
+	CreatedAt        time.Time `json:"created_at"`
+	UpdatedAt        time.Time `json:"updated_at"`
+	Name             string    `gorm:"not null" json:"name"`
+	Detail           string    `gorm:"type:text" json:"detail"`
+	DataHash         string    `gorm:"not null" json:"data_hash"`
+	ProductIdOnChain uint      `gorm:"not null" json:"product_id_on_chain"`
+	TxHash           string    `json:"tx_hash"`
+	ProducerWallet   string    `json:"producer_wallet"`
 }

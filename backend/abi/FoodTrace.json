@@ -232,6 +232,19 @@
   },
   {
     "inputs": [],
+    "name": "get_product_count",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "next_product_id",
     "outputs": [
       {
