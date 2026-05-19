@@ -30,7 +30,8 @@ func CORSMiddleware() gin.HandlerFunc {
 }
 
 func main() {
-	// ========== 1. 配置信息 ==========
+	// 1. 配置信息
+	// 数据库连接字符串
 	dsn := "traceadmin:123456@tcp(127.0.0.1:3306)/traceability?charset=utf8mb4&parseTime=True&loc=Local"
 
 	// 以太坊节点 RPC 地址
@@ -42,18 +43,18 @@ func main() {
 	// 已部署的合约地址
 	contractAddr := "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9"
 
-	// ========== 2. 初始化 ==========
+	// 2. 初始化
 	database.InitDB(dsn)
 	blockchain.InitEthClient(ganacheRPC)
 	if err := blockchain.SetContract(abiPath, contractAddr); err != nil {
 		log.Fatal("合约初始化失败:", err)
 	}
 
-	// ========== 3. 创建 Gin 引擎并注册中间件 ==========
+	// 3. 创建 Gin 引擎并注册中间件
 	r := gin.Default()
 	r.Use(CORSMiddleware()) // 自定义 CORS，直接处理 OPTIONS 预检
 
-	// ========== 4. 注册 API 路由 ==========
+	// 4. 注册 API 路由
 	api := r.Group("/api")
 	{
 		api.POST("/prepare-add", handlers.PrepareAdd)             // 预处理：计算 SHA-256 哈希
@@ -63,7 +64,7 @@ func main() {
 		api.GET("/verify/:id", handlers.VerifyProduct)              // 验证链上链下哈希一致性
 	}
 
-	// ========== 5. 启动服务 ==========
+	// 5. 启动服务
 	log.Println("Server running on :8080")
 	if err := r.Run(":8080"); err != nil {
 		log.Fatal("启动服务失败:", err)

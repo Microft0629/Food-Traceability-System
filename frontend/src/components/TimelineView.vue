@@ -29,15 +29,7 @@
 <script setup>
 import { computed } from 'vue'
 
-/**
- * props.records 数组每项格式：
- * {
- *   description: "种植阶段",
- *   operator: "0x1234...",       // 操作者以太坊地址
- *   timestamp: 1678901234,        // Unix 时间戳（秒）
- *   data_hash: "0xabcd..."        // 链下数据的 SHA-256 哈希
- * }
- */
+// props.records 数组每项: { description, operator, timestamp, data_hash }
 const props = defineProps({
   records: {
     type: Array,
@@ -45,8 +37,7 @@ const props = defineProps({
   }
 })
 
-/** 按时间戳升序排序（最早的在上面，最新的在下面）
- *  ethers.js v6 返回 bigint，sort 回调必须返回 number */
+// 按时间戳升序排序（ethers v6 返回 bigint，sort 回调必须返回 number）
 const sortedRecords = computed(() => {
   if (!props.records) return []
   return [...props.records].sort((a, b) => {
@@ -56,7 +47,7 @@ const sortedRecords = computed(() => {
   })
 })
 
-/** Unix 秒数（bigint 或 number）→ 本地日期时间字符串 */
+// Unix 秒数（bigint 或 number）→ 本地日期时间字符串
 const formatTime = (timestamp) => {
   if (!timestamp) return '未知时间'
   // 转换为 Number 后创建 Date（BigInt * Number 会报错，需显式 Number()）
@@ -65,14 +56,14 @@ const formatTime = (timestamp) => {
   return date.toLocaleString()
 }
 
-/** 截断以太坊地址为 0x12..ab 格式 */
+// 截断以太坊地址为 0x12..ab 格式
 const truncateAddress = (addr) => {
   if (!addr) return '未知'
   if (addr.length <= 10) return addr
   return `${addr.slice(0, 6)}...${addr.slice(-4)}`
 }
 
-/** 截断哈希值为前 10 + ... + 后 8 位格式 */
+// 截断哈希值为前 10 + ... + 后 8 位格式
 const truncateHash = (hash) => {
   if (!hash) return '无'
   if (hash.length <= 16) return hash

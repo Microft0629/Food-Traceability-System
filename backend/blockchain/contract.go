@@ -74,7 +74,7 @@ func GetProductFromChain(productID uint) (*ChainProduct, error) {
 
 	// 解析返回结果
 	// Unpack 需要知道返回类型，get_product 返回 (uint256,string,address,bool,(string,string,address,uint256)[])
-	// 我们定义临时结构体用于解析，也可以使用 UnpackIntoInterface
+	// 定义临时结构体用于解析，也可以使用 UnpackIntoInterface
 	var res struct {
 		Id       *big.Int
 		Name     string

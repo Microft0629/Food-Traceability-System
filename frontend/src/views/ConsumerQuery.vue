@@ -106,7 +106,7 @@ const listError = ref(null)
 
 // ========== 产品列表加载 ==========
 
-/** 加载全部已注册产品 */
+// 加载全部已注册产品
 async function loadProductList() {
   listLoading.value = true
   listError.value = null
@@ -119,7 +119,7 @@ async function loadProductList() {
   }
 }
 
-/** 点击列表中的产品 → 自动填入 ID 并查询 */
+// 点击列表中的产品 → 自动填入 ID 并查询
 function selectProduct(id) {
   productId.value = String(id)
   handleQuery()
@@ -132,10 +132,7 @@ onMounted(() => {
 
 // ========== 产品查询 ==========
 
-/**
- * 调用合约 get_product 读取链上数据
- * get_product 返回 (id, name, producer, exists, records)
- */
+// 调用合约 get_product 读取链上数据，返回 (id, name, producer, exists, records)
 const handleQuery = async () => {
   if (!productId.value.trim()) {
     error.value = '请输入产品ID'

@@ -1,13 +1,7 @@
-/**
- * Pinia 合约状态管理
- * 管理钱包连接、ethers.js 合约实例（读写分离）与生产商角色状态
- * - readContract：JsonRpcProvider，用于 view/pure 读调用，无须签名
- * - writeContract：MetaMask signer，用于写交易
- *
- * 注意：ethers.js 的 Contract / Signer / Provider 实例内部使用 Proxy，
- * 必须用 shallowRef 存储，避免 Vue 的深层响应式代理与 ethers Proxy 冲突
- * （否则会报 "Receiver must be an instance of class anonymous"）
- */
+// Pinia 合约状态管理
+// 管理钱包连接、ethers.js 合约实例（读写分离）与生产商角色状态
+// readContract：JsonRpcProvider，用于 view 读调用，无须签名
+// writeContract：MetaMask signer，用于写交易，需签名
 import { defineStore } from "pinia";
 import { ref, shallowRef } from "vue";
 
@@ -15,6 +9,7 @@ export const useContractStore = defineStore("contract", () => {
   // ========== 响应式状态 ==========
   const account = ref(null); // 当前 MetaMask 钱包地址（简单值，可用 ref）
   const chainId = ref(null); // 当前连接的链 ID (31337 = Ganache/Hardhat 本地链)
+
   // 以下为 ethers.js 对象，内部含 Proxy，必须用 shallowRef
   const browserProvider = shallowRef(null); // ethers.BrowserProvider
   const provider = shallowRef(null); // ethers.JsonRpcProvider — 只读 JSON-RPC
@@ -59,7 +54,7 @@ export const useContractStore = defineStore("contract", () => {
     isProducer.value = val;
   }
 
-  /** 重置所有状态 — 断开钱包时调用 */
+  // 重置所有状态（如断开钱包连接时调用）
   function reset() {
     account.value = null;
     chainId.value = null;
@@ -72,6 +67,7 @@ export const useContractStore = defineStore("contract", () => {
     isProducer.value = false;
   }
 
+  // ========== 导出状态与方法 ==========
   return {
     account,
     chainId,

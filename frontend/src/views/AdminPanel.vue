@@ -93,17 +93,14 @@ const messageType = ref("success"); // 消息类型（控制样式）
 
 // ========== 计算属性 ==========
 
-/** 检查钱包是否已连接（store.isConnected && 有 account 地址） */
+// 检查钱包是否已连接
 const isWalletConnected = computed(() => {
   return contractStore.isConnected && contractStore.account;
 });
 
 // ========== 管理员身份验证 ==========
 
-/**
- * 验证当前账户是否为合约 owner（管理员）
- * 从合约读取 owner() 并与已连接的钱包地址比对
- */
+// 验证当前账户是否为合约 owner：从合约读取 owner() 并与钱包地址比对
 const verifyAdmin = async () => {
   if (!isWalletConnected.value || !contractStore.account) {
     isAdmin.value = false;
@@ -128,7 +125,7 @@ const verifyAdmin = async () => {
 
 // ========== 监听器：自动触发身份验证 ==========
 
-/** 监听钱包连接状态变化 */
+// 监听钱包连接状态变化
 watch(
   isWalletConnected,
   () => {
@@ -141,7 +138,7 @@ watch(
   { immediate: true },
 );
 
-/** 监听合约实例初始化 */
+// 监听合约实例初始化
 watch(
   () => contractStore.writeContract,
   (newContract) => {
@@ -151,7 +148,7 @@ watch(
   },
 );
 
-/** 监听账户地址切换 */
+// 监听账户地址切换
 watch(
   () => contractStore.account,
   (newAccount) => {
@@ -165,7 +162,7 @@ watch(
 
 // ========== 操作方法 ==========
 
-/** 显示 5 秒自动消失的反馈消息 */
+// 显示 5 秒自动消失的反馈消息
 const showMessage = (text, type = "success") => {
   message.value = text;
   messageType.value = type;
@@ -174,10 +171,7 @@ const showMessage = (text, type = "success") => {
   }, 5000);
 };
 
-/**
- * 处理添加生产商
- * 校验地址格式 → 调用合约 add_producer → 显示结果
- */
+// 处理添加生产商：校验地址格式 → 调用合约 add_producer → 显示结果
 const handleAddProducer = async () => {
   // 前后端双重校验
   if (!addProducerAddress.value.trim()) {
@@ -203,10 +197,7 @@ const handleAddProducer = async () => {
   }
 };
 
-/**
- * 处理移除生产商
- * 校验地址格式 → 调用合约 remove_producer → 显示结果
- */
+// 处理移除生产商：校验地址格式 → 调用合约 remove_producer → 显示结果
 const handleRemoveProducer = async () => {
   if (!removeProducerAddress.value.trim()) {
     showMessage("请输入生产商地址", "error");
@@ -231,14 +222,14 @@ const handleRemoveProducer = async () => {
   }
 };
 
-/** 验证以太坊地址格式（0x 开头 + 40 位十六进制字符） */
+// 验证以太坊地址格式（0x 开头 + 40 位十六进制字符）
 const isValidAddress = (address) => {
   return /^0x[a-fA-F0-9]{40}$/.test(address);
 };
 
 // ========== 生命周期 ==========
 
-/** 组件挂载时，如果已有合约和账户则立即验证身份 */
+// 组件挂载时，如果已有合约和账户则立即验证身份
 onMounted(() => {
   if (contractStore.writeContract && contractStore.account) {
     verifyAdmin();

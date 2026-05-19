@@ -20,15 +20,10 @@ import { useContractStore } from '../stores/contract'
 const store = useContractStore()
 const loading = ref(false) // 连接进行中标识，防止重复点击
 
-/** 从 store 中读取当前钱包地址（响应式） */
+// 从 store 中读取当前钱包地址（响应式）
 const account = computed(() => store.account)
 
-/**
- * 根据连接状态动态切换按钮文本：
- * - 未连接：显示 "连接钱包"
- * - 连接中：显示 "连接中..."
- * - 已连接：显示缩短的地址（如 0x1234...abcd）
- */
+// 根据连接状态动态切换按钮文本：未连接/连接中/已连接显示缩短地址
 const buttonText = computed(() => {
   if (loading.value) return '连接中...'
   if (account.value) {
@@ -38,7 +33,7 @@ const buttonText = computed(() => {
   return '连接钱包'
 })
 
-/** 点击按钮触发钱包连接流程 */
+// 点击按钮触发钱包连接流程
 const handleConnect = async () => {
   if (loading.value) return
   loading.value = true

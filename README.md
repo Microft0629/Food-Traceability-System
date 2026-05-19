@@ -1,6 +1,6 @@
-### 食品溯源系统部署指南
+# 食品溯源系统部署指南
 
-#### 一、环境要求
+## 一、环境要求
 
 在开始之前，请确保您的本地开发环境已安装以下软件：
 
@@ -9,7 +9,7 @@
 - **Go** >= 1.21
 - **MySQL** 8.0
 
-#### 二、前置环境与克隆
+## 二、前置环境与克隆
 
 首先，克隆项目仓库并进入项目目录。
 
@@ -18,7 +18,7 @@ git clone https://github.com/Microft0629/Food-Traceability-System.git
 cd Food-Traceability-System
 ```
 
-#### 三、安装依赖
+## 三、安装依赖
 
 根据项目结构，分别安装前端、区块链及后端所需的依赖库。
 
@@ -33,7 +33,7 @@ cd blockchain && npm install && cd ..
 cd backend && go mod tidy && cd ..
 ```
 
-#### 四、配置数据库
+## 四、配置数据库
 
 请确保本地已安装 MySQL 服务。使用以下命令初始化数据库及用户权限（数据库名：`traceability`，密码：`126456`）。
 
@@ -46,7 +46,7 @@ mysql -u root -p < init_database.sql
 mysql -u traceadmin -p123456 traceability < backup.sql
 ```
 
-#### 五、运行程序
+## 五、运行程序
 
 请按顺序打开 **4个独立的终端窗口** 执行以下步骤：
 
@@ -100,7 +100,15 @@ npm run dev
 
 _访问地址：_ 浏览器打开 。
 
-#### 六、常见维护命令
+## 六、注意事项
+
+**测试合约**
+运行 blockchain/test/foodtracetest.js 文件，测试合约可靠性：
+
+```bash
+cd blockchain
+npx hardhat test
+```
 
 **重启清理**
 Ganache 异常退出后，必须清理锁文件才能重新启动：

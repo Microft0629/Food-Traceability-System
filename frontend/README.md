@@ -1,5 +1,62 @@
-# Vue 3 + Vite
+# 食品追溯系统 — 前端使用说明
 
-This template should help get you started developing with Vue 3 in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+## 启动
 
-Learn more about IDE Support for Vue in the [Vue Docs Scaling up Guide](https://vuejs.org/guide/scaling-up/tooling.html#ide-support).
+```bash
+npm install
+npm run dev
+```
+
+浏览器打开 `http://localhost:5173`。
+
+---
+
+## 使用流程
+
+### 1. 管理员（合约部署者 = Ganache 账户 #0）
+
+| 步骤 | 操作 |
+|------|------|
+| 连接钱包 | MetaMask 选择 Ganache 网络（`127.0.0.1:8545`，链 ID `31337`），切换至账户 #0，点击页面顶部"连接钱包" |
+| 进入管理页 | 点击导航栏"管理员" |
+| 添加生产商 | 输入 Ganache 账户 #1 地址 `0x70997970C51812dc3A010C7d01b50e0d17dc79C8`，点击"添加生产商"，MetaMask 确认交易 |
+
+> 如果提示"只有合约管理员才能执行此操作"，说明当前 MetaMask 账户不是合约部署者。
+
+### 2. 生产商（Ganache 账户 #1）
+
+| 步骤 | 操作 |
+|------|------|
+| 切换账户 | MetaMask 切换至账户 #1 |
+| 连接钱包 | 刷新页面，重新点击"连接钱包" |
+| 进入生产商页 | 点击导航栏"生产商" |
+| 注册产品 | 填写产品名称和详细描述（支持换行），点击"注册产品"，MetaMask 确认交易 |
+| 添加溯源记录 | 在"我的产品列表"中点击某个产品（自动填入 ID），输入环节描述（如种植、采摘、包装、运输），点击"提交记录" |
+
+> 同一产品不可使用相同的环节描述；产品名称不可与已有产品重复。
+
+### 3. 消费者（无需连接钱包）
+
+| 步骤 | 操作 |
+|------|------|
+| 进入消费者页 | 点击导航栏"消费者" |
+| 浏览产品 | 页面自动加载全部已注册产品列表，点击任一产品即可查看详情 |
+| 查看溯源 | 时间线按先后顺序展示从注册到各环节的完整记录，包含描述、操作时间、操作者、数据哈希 |
+
+---
+
+## 页面说明
+
+| 页面 | 路径 | 功能 |
+|------|------|------|
+| 首页 | `/` | 三个角色入口导航 |
+| 生产商面板 | `/producer` | 我的产品列表、注册新产品、添加溯源记录 |
+| 消费者查询 | `/consumer` | 产品列表浏览、溯源时间线查看 |
+| 管理员面板 | `/admin` | 添加/移除生产商白名单 |
+
+## Ganache 固定账户
+
+| 序号 | 地址 | 私钥 |
+|------|------|------|
+| #0 (管理员) | `0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266` | `0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80` |
+| #1 (生产商) | `0x70997970C51812dc3A010C7d01b50e0d17dc79C8` | `0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d` |

@@ -1,13 +1,14 @@
+// 食品溯源智能合约
+// 管理员（owner）管理生产商白名单，生产商注册产品与添加溯源记录，任何人可查询
+
 // SPDX-License-Identifier: MIT
+
 pragma solidity ^0.8.2;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-/// @title 食品溯源智能合约
-/// @notice 管理员（owner）管理生产商白名单，生产商注册产品与添加溯源记录，任何人可查询
 contract FoodTrace is Ownable {
-    // ========== 状态变量 ==========
-
+    // 1. 状态变量
     // 生产商地址白名单
     mapping(address => bool) public producers;
 
@@ -34,29 +35,26 @@ contract FoodTrace is Ownable {
     // 产品映射
     mapping(uint256 => Product) public products;
 
-    // ========== 事件 ==========
-
+    // 2. 事件
+    // 事件：产品注册、记录添加、生产商添加/移除
     event ProductRegistered(uint256 indexed product_id, string name, address indexed producer);
     event RecordAdded(uint256 indexed product_id, string data_hash, string description, uint256 timestamp, address indexed operator);
     event ProducerAdded(address indexed producer);
     event ProducerRemoved(address indexed producer);
 
-    // ========== 修饰符 ==========
-
-    /// @notice 仅白名单内的生产商可调用
+    // 3. 修饰符
+    // 仅白名单内的生产商可调用
     modifier onlyProducer() {
         require(producers[msg.sender], "Caller is not a producer");
         _;
     }
 
-    // ========== 构造函数 ==========
-
-    /// @notice 部署者自动成为 owner（管理员）
+    // 4. 构造函数
+    // 部署者自动成为 owner（管理员）
     constructor() Ownable(msg.sender) {}
 
-    // ========== 管理员函数（仅 owner） ==========
-
-    /// @notice 管理员添加生产商到白名单
+    // 5. 管理员函数（仅 owner）
+    // 管理员添加生产商到白名单
     function add_producer(address _producer) external onlyOwner {
         require(_producer != address(0), "Invalid address");
         require(!producers[_producer], "Already a producer");
@@ -64,16 +62,15 @@ contract FoodTrace is Ownable {
         emit ProducerAdded(_producer);
     }
 
-    /// @notice 管理员从白名单移除生产商
+    // 管理员从白名单移除生产商
     function remove_producer(address _producer) external onlyOwner {
         require(producers[_producer], "Not a producer");
         producers[_producer] = false;
         emit ProducerRemoved(_producer);
     }
 
-    // ========== 生产商函数（仅白名单内生产商） ==========
-
-    /// @notice 注册新产品，自动创建第一条溯源记录，返回产品 ID
+    // 6. 生产商函数（仅白名单内生产商）
+    // 注册新产品，自动创建第一条溯源记录，返回产品 ID
     function register_product(
         string calldata _name,
         string calldata _data_hash,
@@ -110,7 +107,7 @@ contract FoodTrace is Ownable {
         return product_id;
     }
 
-    /// @notice 为已有产品添加溯源记录（仅该产品的生产商）
+    // 为已有产品添加溯源记录（仅该产品的生产商）
     function add_record(
         uint256 _product_id,
         string calldata _data_hash,
@@ -139,9 +136,8 @@ contract FoodTrace is Ownable {
         emit RecordAdded(_product_id, _data_hash, _description, block.timestamp, msg.sender);
     }
 
-    // ========== 公开查询函数（任何人可调用） ==========
-
-    /// @notice 查询产品完整信息（含全部溯源记录）
+    // 7. 公开查询函数（任何人可调用）
+    // 查询产品完整信息（含全部溯源记录）
     function get_product(uint256 _product_id) external view returns (
         uint256 id,
         string memory name,
@@ -154,7 +150,7 @@ contract FoodTrace is Ownable {
         return (p.id, p.name, p.producer, p.exists, p.records);
     }
 
-    /// @notice 获取当前已注册产品总数
+    // 获取当前已注册产品总数
     function get_product_count() external view returns (uint256) {
         return next_product_id - 1;
     }

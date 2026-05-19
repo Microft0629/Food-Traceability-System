@@ -1,13 +1,10 @@
-/**
- * Hardhat v3 合约测试：FoodTrace 食品溯源智能合约
- * Ownable 权限：仅 owner 管理生产商，仅 producer 注册产品/添加记录，任何人可查询
- */
+// 合约测试：FoodTrace.sol
+// Ownable 权限：仅 owner 管理生产商，仅 producer 注册产品/添加记录，任何人可查询
 import { describe, it } from "node:test";
 import hre from "hardhat";
 import { expect } from "chai";
 
 describe("FoodTrace", function () {
-
   // ========== 测试基础设施 ==========
 
   async function getEthers() {
@@ -15,7 +12,7 @@ describe("FoodTrace", function () {
     return ethers;
   }
 
-  /** 部署合约，返回四个测试账户 + 合约实例 */
+  // 部署合约，返回四个测试账户 + 合约实例
   async function deploy() {
     const ethers = await getEthers();
     const [owner, producer, otherProducer, nonProducer] =
@@ -24,14 +21,14 @@ describe("FoodTrace", function () {
     return { foodTrace, owner, producer, otherProducer, nonProducer };
   }
 
-  /** 部署 + 将 producer 添加为生产商 */
+  // 部署 + 将 producer 添加为生产商
   async function setupWithProducer() {
     const ctx = await deploy();
     await ctx.foodTrace.add_producer(ctx.producer.address);
     return ctx;
   }
 
-  /** 部署 + producer + otherProducer 均为生产商 + producer 已注册产品 #1 */
+  // 部署 + producer + otherProducer 均为生产商 + producer 已注册产品 #1
   async function setupWithProduct() {
     const ctx = await setupWithProducer();
     await ctx.foodTrace.add_producer(ctx.otherProducer.address);
@@ -43,7 +40,6 @@ describe("FoodTrace", function () {
   // ========== 1. 权限控制 ==========
 
   describe("Access Control", function () {
-
     it("should set deployer as owner", async function () {
       const { foodTrace, owner } = await deploy();
       const contractOwner = await foodTrace.owner();
@@ -77,7 +73,6 @@ describe("FoodTrace", function () {
   // ========== 2. 生产商管理 ==========
 
   describe("Producer Management", function () {
-
     it("should allow owner to add a producer", async function () {
       const { foodTrace, producer } = await deploy();
       await foodTrace.add_producer(producer.address);
@@ -90,11 +85,21 @@ describe("FoodTrace", function () {
       expect(await foodTrace.producers(producer.address)).to.be.false;
     });
 
+    it("should reject adding already-existing producer", async function () {
+      const { foodTrace, producer } = await setupWithProducer();
+      try {
+        await foodTrace.add_producer(producer.address);
+        expect.fail("Should have thrown");
+      } catch (e) {
+        expect(e.message).to.include("Already a producer");
+      }
+    });
+
     it("should reject adding zero address as producer", async function () {
       const { foodTrace } = await deploy();
       try {
         await foodTrace.add_producer(
-          "0x0000000000000000000000000000000000000000"
+          "0x0000000000000000000000000000000000000000",
         );
         expect.fail("Should have thrown");
       } catch (e) {
@@ -116,7 +121,6 @@ describe("FoodTrace", function () {
   // ========== 3. 产品注册 ==========
 
   describe("Product Registration", function () {
-
     it("should reject non-producer calling register_product", async function () {
       const { foodTrace, nonProducer } = await deploy();
       const c = foodTrace.connect(nonProducer);
@@ -153,6 +157,18 @@ describe("FoodTrace", function () {
       expect(await foodTrace.get_product_count()).to.equal(3n);
     });
 
+    it("should reject duplicate product name", async function () {
+      const { foodTrace, producer } = await setupWithProducer();
+      const c = foodTrace.connect(producer);
+      await c.register_product("Apple", "hash1", "desc1");
+      try {
+        await c.register_product("Apple", "hash2", "desc2");
+        expect.fail("Should have thrown");
+      } catch (e) {
+        expect(e.message).to.include("Product name already exists");
+      }
+    });
+
     it("should reject empty product name", async function () {
       const { foodTrace, producer } = await setupWithProducer();
       const c = foodTrace.connect(producer);
@@ -168,7 +184,6 @@ describe("FoodTrace", function () {
   // ========== 4. 溯源记录 ==========
 
   describe("Trace Records", function () {
-
     it("should allow producer to add record to own product", async function () {
       const { foodTrace, producer } = await setupWithProduct();
       const c = foodTrace.connect(producer);
@@ -180,7 +195,7 @@ describe("FoodTrace", function () {
       expect(records[1].data_hash).to.equal("QmHash123");
       expect(records[1].description).to.equal("Milk collected from farm");
       expect(records[1].operator.toLowerCase()).to.equal(
-        producer.address.toLowerCase()
+        producer.address.toLowerCase(),
       );
     });
 
@@ -192,7 +207,7 @@ describe("FoodTrace", function () {
         expect.fail("Should have thrown");
       } catch (e) {
         expect(e.message).to.include(
-          "You are not the producer of this product"
+          "You are not the producer of this product",
         );
       }
     });
@@ -205,6 +220,18 @@ describe("FoodTrace", function () {
         expect.fail("Should have thrown");
       } catch (e) {
         expect(e.message).to.include("Product does not exist");
+      }
+    });
+
+    it("should reject duplicate record description", async function () {
+      const { foodTrace, producer } = await setupWithProduct();
+      const c = foodTrace.connect(producer);
+      await c.add_record(1, "QmHash001", "Farm collection");
+      try {
+        await c.add_record(1, "QmHash002", "Farm collection");
+        expect.fail("Should have thrown");
+      } catch (e) {
+        expect(e.message).to.include("Duplicate record description");
       }
     });
 
@@ -223,7 +250,6 @@ describe("FoodTrace", function () {
   // ========== 5. 产品查询（任何人可调用） ==========
 
   describe("Product Query", function () {
-
     it("should allow anyone to query product", async function () {
       const { foodTrace, producer, nonProducer } = await setupWithProducer();
       const c = foodTrace.connect(producer);
@@ -249,9 +275,7 @@ describe("FoodTrace", function () {
       const product = await foodTrace.get_product(1);
       expect(product[0]).to.equal(1n);
       expect(product[1]).to.equal("Organic Milk");
-      expect(product[2].toLowerCase()).to.equal(
-        producer.address.toLowerCase()
-      );
+      expect(product[2].toLowerCase()).to.equal(producer.address.toLowerCase());
       expect(product[3]).to.be.true;
       const records = product[4];
       expect(records).to.have.lengthOf(4);

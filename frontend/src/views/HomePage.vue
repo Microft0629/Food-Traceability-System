@@ -21,7 +21,7 @@ import { useRouter } from 'vue-router'
 
 const router = useRouter()
 
-/** 编程式导航跳转到指定路由 */
+// 编程式导航跳转到指定路由
 const goTo = (path) => {
   router.push(path)
 }

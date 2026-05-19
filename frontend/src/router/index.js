@@ -1,7 +1,6 @@
-/**
- * Vue Router 路由配置
- * / -> 首页  /producer -> 生产商  /consumer -> 消费者  /admin -> 管理员
- */
+// Vue Router 路由配置
+// / -> 首页  /producer -> 生产商  /consumer -> 消费者  /admin -> 管理员
+
 import { createRouter, createWebHistory } from "vue-router";
 import HomePage from "../views/HomePage.vue";
 import ProducerPanel from "../views/ProducerPanel.vue";
