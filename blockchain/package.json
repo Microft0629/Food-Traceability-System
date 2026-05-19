@@ -7,6 +7,7 @@
     "compile": "hardhat compile",
     "test": "hardhat test",
     "deploy": "node scripts/deploy.js",
+    "deploy:ganache": "node scripts/deploy.js",
     "sync-abi": "node scripts/sync-abi.js",
     "ganache": "ganache --port 8545 --host 127.0.0.1 --chain.chainId 31337 --wallet.mnemonic \"test test test test test test test test test test test junk\" --database.dbPath ./ganache-data",
     "node": "hardhat node"
