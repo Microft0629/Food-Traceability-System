@@ -7,7 +7,7 @@ import contractABI from "../contractABI.json";
 import { useContractStore } from "../stores/contract";
 
 // ========== 环境配置常量 ==========
-const CONTRACT_ADDRESS = "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9";
+const CONTRACT_ADDRESS = "0xA51c1fc2f0D1a1b8494Ed1FE312d7C3a78Ed91C0";
 const API_BASE = "http://localhost:8080/api";
 const GANACHE_RPC = "http://127.0.0.1:8545";
 const CHAIN_ID = 31337;
@@ -16,7 +16,9 @@ const CHAIN_ID = 31337;
 
 // 创建直连 Ganache 的只读 JSON-RPC 提供者
 function createReadProvider() {
-  return new ethers.JsonRpcProvider(GANACHE_RPC, CHAIN_ID, { staticNetwork: true });
+  return new ethers.JsonRpcProvider(GANACHE_RPC, CHAIN_ID, {
+    staticNetwork: true,
+  });
 }
 
 // 创建只读合约实例（用于 view 调用，无需签名）
@@ -37,13 +39,15 @@ async function ensureGanacheNetwork() {
     if (switchError.code === 4902) {
       await window.ethereum.request({
         method: "wallet_addEthereumChain",
-        params: [{
-          chainId: chainIdHex,
-          chainName: "Ganache Local",
-          nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 },
-          rpcUrls: [GANACHE_RPC],
-          blockExplorerUrls: null,
-        }],
+        params: [
+          {
+            chainId: chainIdHex,
+            chainName: "Ganache Local",
+            nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 },
+            rpcUrls: [GANACHE_RPC],
+            blockExplorerUrls: null,
+          },
+        ],
       });
     }
   }
@@ -58,7 +62,9 @@ function parseProductIdFromReceipt(receipt) {
       if (parsed && parsed.name === "ProductRegistered") {
         return parsed.args.product_id;
       }
-    } catch (e) { /* 跳过不匹配的日志 */ }
+    } catch (e) {
+      /* 跳过不匹配的日志 */
+    }
   }
   throw new Error("交易收据中未找到 ProductRegistered 事件");
 }
@@ -85,7 +91,11 @@ export async function initContract() {
   const signer = await browserProvider.getSigner();
   const provider = createReadProvider();
   const readContract = createReadContract(provider);
-  const writeContract = new ethers.Contract(CONTRACT_ADDRESS, contractABI, signer);
+  const writeContract = new ethers.Contract(
+    CONTRACT_ADDRESS,
+    contractABI,
+    signer,
+  );
   const network = await provider.getNetwork();
 
   store.setBrowserProvider(browserProvider);
@@ -106,7 +116,9 @@ export async function connectWallet() {
     return null;
   }
 
-  const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+  const accounts = await window.ethereum.request({
+    method: "eth_requestAccounts",
+  });
   const chainIdHex = await window.ethereum.request({ method: "eth_chainId" });
   const account = accounts[0];
   const chainId = parseInt(chainIdHex, 16);
@@ -160,7 +172,9 @@ export async function registerProductFlow(name, detail) {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      name, detail, data_hash,
+      name,
+      detail,
+      data_hash,
       product_id_on_chain: Number(result.productId),
       tx_hash: result.txHash,
       producer_wallet: store.account,
@@ -184,12 +198,18 @@ export async function addRecord(productId, description) {
     return { txHash: tx.hash, receipt, dataHash };
   });
 
-  // 通知后端更新产品 updated_at
+  // 通知后端：存溯源记录副本 + 刷新产品 updated_at
+  const store = useContractStore();
   fetch(`${API_BASE}/update-product`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ product_id_on_chain: productId }),
-  }).catch((e) => console.warn("更新时间戳失败（不影响主流程）:", e));
+    body: JSON.stringify({
+      product_id_on_chain: productId,
+      description,
+      data_hash: dataHash,
+      operator: store.account,
+    }),
+  }).catch((e) => console.warn("存溯源记录失败（不影响主流程）:", e));
 
   return result;
 }
@@ -246,7 +266,9 @@ export async function fetchAllProducts() {
 // 获取指定生产商地址注册的全部产品列表
 export async function fetchProducerProducts(producerAddress) {
   const all = await fetchAllProducts();
-  return all.filter((p) => p.producer.toLowerCase() === producerAddress.toLowerCase());
+  return all.filter(
+    (p) => p.producer.toLowerCase() === producerAddress.toLowerCase(),
+  );
 }
 
 // 重新导出错误翻译函数

@@ -12,7 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// 1. 预处理：计算产品数据的 SHA-256 哈希
+// 1. 预处理：计算 SHA-256(name+detail)
 func PrepareAdd(c *gin.Context) {
 	var req struct {
 		Name   string `json:"name" binding:"required"`
@@ -22,29 +22,49 @@ func PrepareAdd(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
 	hash := sha256.Sum256([]byte(req.Name + req.Detail))
-	hashStr := "0x" + hex.EncodeToString(hash[:])
-
-	c.JSON(http.StatusOK, gin.H{"data_hash": hashStr})
+	c.JSON(http.StatusOK, gin.H{"data_hash": "0x" + hex.EncodeToString(hash[:])})
 }
 
-// 2. 上链后入库
+// 2. 上链后入库（产品 + 第一条溯源记录）
 func SaveAfterChain(c *gin.Context) {
-	var p models.Product
-	if err := c.ShouldBindJSON(&p); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "请求参数错误: " + err.Error()})
-		return
+	var req struct {
+		Name             string `json:"name"`
+		Detail           string `json:"detail"`
+		DataHash         string `json:"data_hash"`
+		ProductIdOnChain uint   `json:"product_id_on_chain"`
+		TxHash           string `json:"tx_hash"`
+		ProducerWallet   string `json:"producer_wallet"`
 	}
-	if p.Name == "" || p.DataHash == "" || p.ProductIdOnChain == 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "缺少必要字段: name, data_hash, product_id_on_chain"})
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
+	// 存产品元数据
+	p := models.Product{
+		Name:             req.Name,
+		Detail:           req.Detail,
+		DataHash:         req.DataHash,
+		ProductIdOnChain: req.ProductIdOnChain,
+		TxHash:           req.TxHash,
+		ProducerWallet:   req.ProducerWallet,
+	}
 	if err := database.DB.Create(&p).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "入库失败: " + err.Error()})
 		return
 	}
+
+	// 存第一条溯源记录（注册时的初始记录）
+	tr := models.TraceRecord{
+		ProductIdOnChain: req.ProductIdOnChain,
+		Description:      req.Detail,
+		DataHash:         req.DataHash,
+		Operator:         req.ProducerWallet,
+		Timestamp:        uint(time.Now().Unix()),
+	}
+	database.DB.Create(&tr)
+
 	c.JSON(http.StatusOK, gin.H{"status": "入库成功"})
 }
 
@@ -59,7 +79,40 @@ func GetProductByID(c *gin.Context) {
 	c.JSON(http.StatusOK, p)
 }
 
-// 4. 验证：对比数据库哈希与链上最新记录哈希
+// 4. 添加溯源记录后存入 MySQL + 刷新产品更新时间
+func UpdateProductTimestamp(c *gin.Context) {
+	var req struct {
+		ProductIdOnChain uint   `json:"product_id_on_chain" binding:"required"`
+		Description      string `json:"description"`
+		DataHash         string `json:"data_hash"`
+		Operator         string `json:"operator"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	var p models.Product
+	if err := database.DB.Where("product_id_on_chain = ?", req.ProductIdOnChain).First(&p).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "产品不存在"})
+		return
+	}
+	database.DB.Model(&p).Update("updated_at", time.Now())
+
+	// 存溯源记录（链下备份，供验证比对）
+	tr := models.TraceRecord{
+		ProductIdOnChain: req.ProductIdOnChain,
+		Description:      req.Description,
+		DataHash:         req.DataHash,
+		Operator:         req.Operator,
+		Timestamp:        uint(time.Now().Unix()),
+	}
+	database.DB.Create(&tr)
+
+	c.JSON(http.StatusOK, gin.H{"status": "ok"})
+}
+
+// 5. 防篡改验证：逐条比对链上所有溯源记录与 MySQL 中备份的哈希
 func VerifyProduct(c *gin.Context) {
 	id := c.Param("id")
 	var p models.Product
@@ -74,36 +127,50 @@ func VerifyProduct(c *gin.Context) {
 		return
 	}
 
-	if len(chainProduct.Records) == 0 {
+	chainRecords := chainProduct.Records
+	if len(chainRecords) == 0 {
 		c.JSON(http.StatusOK, gin.H{"verified": false, "reason": "链上无溯源记录"})
 		return
 	}
-	lastRecord := chainProduct.Records[len(chainProduct.Records)-1]
 
-	verified := (lastRecord.DataHash == p.DataHash)
+	// 读取 MySQL 中的溯源记录
+	var dbRecords []models.TraceRecord
+	database.DB.Where("product_id_on_chain = ?", p.ProductIdOnChain).
+		Order("id ASC").Find(&dbRecords)
+
+	// 逐条比对
+	type RecordResult struct {
+		Index      int    `json:"index"`
+		ChainHash  string `json:"chain_hash"`
+		DbHash     string `json:"db_hash"`
+		Match      bool   `json:"match"`
+		Description string `json:"description"`
+	}
+	results := make([]RecordResult, 0, len(chainRecords))
+
+	allMatch := true
+	for i, cr := range chainRecords {
+		rr := RecordResult{
+			Index:       i + 1,
+			ChainHash:   cr.DataHash,
+			Description: cr.Description,
+		}
+		if i < len(dbRecords) {
+			rr.DbHash = dbRecords[i].DataHash
+			rr.Match = cr.DataHash == dbRecords[i].DataHash
+		} else {
+			rr.DbHash = "(无对应记录)"
+			rr.Match = false
+		}
+		if !rr.Match {
+			allMatch = false
+		}
+		results = append(results, rr)
+	}
+
 	c.JSON(http.StatusOK, gin.H{
-		"verified":   verified,
-		"db_hash":    p.DataHash,
-		"chain_hash": lastRecord.DataHash,
+		"verified": allMatch,
+		"product_name": p.Name,
+		"records":      results,
 	})
-}
-
-// 5. 添加溯源记录后刷新产品的更新时间
-func UpdateProductTimestamp(c *gin.Context) {
-	var req struct {
-		ProductIdOnChain uint `json:"product_id_on_chain" binding:"required"`
-	}
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	var p models.Product
-	if err := database.DB.Where("product_id_on_chain = ?", req.ProductIdOnChain).First(&p).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "产品不存在"})
-		return
-	}
-
-	database.DB.Model(&p).Update("updated_at", time.Now())
-	c.JSON(http.StatusOK, gin.H{"status": "ok"})
 }
