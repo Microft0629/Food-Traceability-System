@@ -1,6 +1,7 @@
 package blockchain
 
 import (
+	"context"
 	"fmt"
 	"math/big"
 	"os"
@@ -64,7 +65,7 @@ func GetProductFromChain(productID uint) (*ChainProduct, error) {
 	}
 
 	// 调用合约
-	result, err := Client.CallContract(nil, ethereum.CallMsg{
+	result, err := Client.CallContract(context.Background(), ethereum.CallMsg{
 		To:   &contractAddr,
 		Data: callData,
 	}, nil)

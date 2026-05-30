@@ -69,10 +69,11 @@ func SaveAfterChain(c *gin.Context) {
 }
 
 // 3. 根据数据库主键 ID 查询产品详情
+// 按链上产品 ID 查询产品详情
 func GetProductByID(c *gin.Context) {
 	id := c.Param("id")
 	var p models.Product
-	if err := database.DB.First(&p, id).Error; err != nil {
+	if err := database.DB.Where("product_id_on_chain = ?", id).First(&p).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "产品不存在"})
 		return
 	}
@@ -113,10 +114,11 @@ func UpdateProductTimestamp(c *gin.Context) {
 }
 
 // 5. 防篡改验证：逐条比对链上所有溯源记录与 MySQL 中备份的哈希
+// 按链上产品 ID 进行防篡改验证
 func VerifyProduct(c *gin.Context) {
 	id := c.Param("id")
 	var p models.Product
-	if err := database.DB.First(&p, id).Error; err != nil {
+	if err := database.DB.Where("product_id_on_chain = ?", id).First(&p).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "产品不存在"})
 		return
 	}

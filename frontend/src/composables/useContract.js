@@ -7,7 +7,7 @@ import contractABI from "../contractABI.json";
 import { useContractStore } from "../stores/contract";
 
 // ========== 环境配置常量 ==========
-const CONTRACT_ADDRESS = "0xA51c1fc2f0D1a1b8494Ed1FE312d7C3a78Ed91C0";
+const CONTRACT_ADDRESS = "0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82";
 const API_BASE = "http://localhost:8080/api";
 const GANACHE_RPC = "http://127.0.0.1:8545";
 const CHAIN_ID = 31337;
