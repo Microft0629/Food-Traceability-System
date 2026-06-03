@@ -3,9 +3,10 @@ package database
 
 import (
 	"backend/models"
+	"log"
+
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
-	"log"
 )
 
 var DB *gorm.DB

@@ -1,3 +1,4 @@
+// 主要业务逻辑
 package handlers
 
 import (
@@ -12,7 +13,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// 1. 预处理：计算 SHA-256(name+detail)
+// 预处理：计算 SHA-256(name+detail)
 func PrepareAdd(c *gin.Context) {
 	var req struct {
 		Name   string `json:"name" binding:"required"`
@@ -26,7 +27,7 @@ func PrepareAdd(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data_hash": "0x" + hex.EncodeToString(hash[:])})
 }
 
-// 2. 上链后入库（产品 + 第一条溯源记录）
+// 上链后入库（产品 + 第一条溯源记录）
 func SaveAfterChain(c *gin.Context) {
 	var req struct {
 		Name             string `json:"name"`
@@ -68,7 +69,6 @@ func SaveAfterChain(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"status": "入库成功"})
 }
 
-// 3. 根据数据库主键 ID 查询产品详情
 // 按链上产品 ID 查询产品详情
 func GetProductByID(c *gin.Context) {
 	id := c.Param("id")
@@ -80,7 +80,7 @@ func GetProductByID(c *gin.Context) {
 	c.JSON(http.StatusOK, p)
 }
 
-// 4. 添加溯源记录后存入 MySQL + 刷新产品更新时间
+// 添加溯源记录后存入 MySQL + 刷新产品更新时间
 func UpdateProductTimestamp(c *gin.Context) {
 	var req struct {
 		ProductIdOnChain uint   `json:"product_id_on_chain" binding:"required"`
@@ -113,8 +113,7 @@ func UpdateProductTimestamp(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"status": "ok"})
 }
 
-// 5. 防篡改验证：逐条比对链上所有溯源记录与 MySQL 中备份的哈希
-// 按链上产品 ID 进行防篡改验证
+// 防篡改验证：逐条比对链上所有溯源记录与 MySQL 中备份的哈希
 func VerifyProduct(c *gin.Context) {
 	id := c.Param("id")
 	var p models.Product
